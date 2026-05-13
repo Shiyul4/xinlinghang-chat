@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新领航小E - 智能助手</title>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+
+  <!-- VMS SDK 配置和加载 -->
+  <script src="/static/vms-config.js"></script>
+  <script type="module">
+    import * as VMSModule from "/static/avatar-sdk-web_3.2.1.1016/esm/index.js";
+    window.VMSClass = VMSModule.default || VMSModule;
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      background: linear-gradient(135deg, #e8f4f8 0%, #3b82f6 30%, #b8d4e8 50%, #3b82f6 70%, #e8f4f8 100%);
+      min-height: 100vh;
+      padding-top: 80px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: linear-gradient(90deg, #0a1f3d 0%, #0f2744 50%, #0a1f3d 100%);
+      box-shadow: 0 4px 20px rgba(10, 31, 61, 0.5);
+      border-bottom: 3px solid #1e5aa8;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .nav-logo {
+      width: 45px;
+      height: 45px;
+      background: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #1e5aa8;
+      box-shadow: 0 0 10px rgba(30, 90, 168, 0.5);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .nav-text h1 {
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin: 0;
+    }
+
+    .nav-text p {
+      color: #8ecae6;
+      font-size: 12px;
+      margin: 2px 0 0 0;
+    }
+
+    .main-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      transform: scale(0.9);
+      transform-origin: top center;
+    }
+
+    .header-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 102, 255, 0.15);
+      backdrop-filter: blur(10px);
+    }
+
+    .header-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 3px solid #1e5aa8;
+      box-shadow: 0 4px 15px rgba(30, 90, 168, 0.3);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+
+    .header-content {
+      text-align: left;
+    }
+
+    .company-name {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #0d47a1;
+      margin: 0;
+      letter-spacing: 1px;
+    }
+
+    .company-remark {
+      font-size: 1rem;
+      color: #1565c0;
+      margin: 8px 0 0 0;
+      font-weight: 500;
+    }
+
+    .content-wrapper {
+      display: flex;
+      gap: 24px;
+      height: 700px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 102, 255, 0.2);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .avatar-section {
+      flex: 1;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-width: 0;
+      height: 100%;
+      border-right: 1px solid #e3f2fd;
+    }
+
+    .avatar-container {
+      width: 100%;
+      height: 100%;
+      max-width: 600px;
+      max-height: 700px;
+      background: #ffffff;
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #vms-stream {
+      width: 100% !important;
+      height: 100% !important;
+      background: #ffffff !important;
+    }
+
+    .avatar-loading-tip {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 71, 161, 0.08);
+      color: #0d47a1;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      z-index: 3;
+      border: 1px solid rgba(13, 71, 161, 0.12);
+      backdrop-filter: blur(6px);
+    }
+
+    .chat-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f8fbff;
+      min-width: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #msg-area {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #f8fbff;
+      max-height: calc(100% - 140px);
+    }
+
+    #msg-area::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #msg-area::-webkit-scrollbar-track {
+      background: #f1f8ff;
+      border-radius: 4px;
+    }
+
+    #msg-area::-webkit-scrollbar-thumb {
+      background: #90caf9;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    #msg-area::-webkit-scrollbar-thumb:hover {
+      background: #64b5f6;
+    }
+
+    #attachment-list {
+      padding: 10px 24px 0;
+      background: #f8fbff;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 100px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .input-area {
+      padding: 20px 24px 24px;
+      border-top: 1px solid #e3f2fd;
+      background: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .msg-bubble-wrap { max-width: 85%; display: inline-block; }
+
+    .assistant-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .speak-btn {
+      background: rgba(13, 71, 161, 0.1);
+      color: #0d47a1;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .speak-btn:hover { background: rgba(13, 71, 161, 0.2); }
+    .speak-btn.playing { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+    #voice-btn, #attach-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e3f2fd;
+      border: 1px solid #bbdefb;
+      color: #1565c0;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    #voice-btn:hover, #attach-btn:hover { background: #bbdefb; transform: translateY(-1px); }
+
+    #voice-btn.listening {
+      background: #ffebee;
+      border-color: #ef5350;
+      color: #c62828;
+      animation: pulse 1.5s infinite;
+    }
+
+    #voice-btn.ending {
+      background: #fff3e0;
+      border-color: #fb8c00;
+      color: #e65100;
+      animation: none;
+    }
+
+    /* 【修改1】新增：自动发送倒计时动画样式 */
+    #voice-btn.auto-send-countdown {
+      background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+      border-color: #4caf50;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #voice-btn.auto-send-countdown::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: rgba(255,255,255,0.8);
+      animation: countdown 2s linear forwards;
+    }
+
+    @keyframes countdown {
+      from { width: 100%; }
+      to { width: 0%; }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    #send-btn {
+      padding: 0 32px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(13, 71, 161, 0.3);
+      flex-shrink: 0;
+    }
+
+    #send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(13, 71, 161, 0.4);
+    }
+
+    #send-btn.stop-mode {
+      background: linear-gradient(135deg, #ef5350 0%, #c62828 100%);
+    }
+
+    .attachment-chip {
+      background: #e3f2fd;
+      border: 1px solid #bbdefb;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #1565c0;
+    }
+
+    .attachment-remove {
+      margin-left: 8px;
+      color: #ef5350;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    #msg-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #bbdefb;
+      border-radius: 12px;
+      outline: none;
+      font-size: 15px;
+      resize: none;
+      max-height: 130px;
+      min-height: 48px;
+      line-height: 1.5;
+      font-family: inherit;
+      background: #ffffff;
+      color: #333;
+    }
+
+    #msg-input:focus {
+      border-color: #1565c0;
+      box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
+    }
+
+    #msg-input::placeholder { color: #90a4ae; }
+
+    .info-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 102, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .info-card h3 {
+      color: #0d47a1;
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card ul { list-style: none; padding: 0; }
+    .info-card li {
+      padding: 8px 0;
+      color: #455a64;
+      border-bottom: 1px solid #e3f2fd;
+      font-size: 0.95rem;
+    }
+    .info-card li:last-child { border-bottom: none; }
+
+    .footer-info {
+      text-align: center;
+      color: #1565c0;
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 102, 255, 0.1);
+    }
+
+    .footer-info h4 { color: #0d47a1; margin-bottom: 8px; }
+    .footer-info p { color: #546e7a; font-size: 0.9rem; }
+
+    .audio-unlock-tip {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(13, 71, 161, 0.95);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 2000;
+      font-size: 14px;
+    }
+
+    .audio-unlock-tip.show { display: flex; }
+
+    .audio-unlock-tip button {
+      background: white;
+      color: #0d47a1;
+      border: none;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .content-wrapper { flex-direction: column; height: auto; min-height: 800px; }
+      .avatar-section { height: 400px; border-right: none; border-bottom: 1px solid #e3f2fd; }
+      .chat-section { height: 500px; }
+      #msg-area { max-height: 350px; }
+    }
+  </style>
+  <base target="_blank">
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <img src="/static/logo2.png" alt="新领航" style="width: 35px; height: 35px; object-fit: contain;">
+      </div>
+      <div class="nav-text">
+        <h1>新领航智能科技有限公司</h1>
+        <p>Zhejiang New Leading Navigation Intelligent Technology Co., Ltd.</p>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <div class="header-section">
+      <div class="header-avatar">
+        <img src="/static/logo3.png" alt="公司Logo" id="company-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="avatar-fallback" style="display: none;">🏢</div>
+      </div>
+      <div class="header-content">
+        <h1 class="company-name" id="company-name">新领航小E</h1>
+        <p class="company-remark" id="company-remark">低空经济 · 智能巡检 · 专业助手</p>
+      </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="avatar-section">
+        <div class="avatar-container">
+          <div id="vms-stream"></div>
+          <div class="avatar-loading-tip" id="avatar-loading-tip">点击页面任意位置后自动加载虚拟人</div>
+        </div>
+      </div>
+
+      <div class="chat-section">
+        <div id="msg-area"></div>
+        <div id="attachment-list"></div>
+
+        <div class="input-area">
+          <div style="display:flex; gap:10px; align-items:flex-end;">
+            <input id="file-input" type="file" hidden multiple accept="image/*,.pdf,.doc,.docx,.txt,.md">
+            <button id="attach-btn" title="上传图片或文档">📎</button>
+            <textarea id="msg-input" rows="1" placeholder="请输入您的问题... 或点击麦克风说话"></textarea>
+            <button id="voice-btn" title="点击开始语音输入">🎤</button>
+            <button id="send-btn">发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-section">
+      <div class="info-card">
+        <h3>🚁 低空经济咨询</h3>
+        <ul>
+          <li>• 无人机巡检专业建议</li>
+          <li>• 智慧城市解决方案</li>
+          <li>• 天空地一体化服务</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3>🎯 智能巡检方案</h3>
+        <ul>
+          <li>• 效率提升5-8倍</li>
+          <li>• AI识别风险隐患</li>
+          <li>• 全自主巡检系统</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3>💡 使用说明</h3>
+        <ul>
+          <li>🎤 点击麦克风开始，再点一次结束（2秒后自动发送）</li>
+          <li>📎 支持图片/PDF/文档上传</li>
+          <li>🔊 点击播报按钮朗读回复</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-info">
+      <h4>浙江新领航智能科技有限公司</h4>
+      <p>引领智能科技 · 共创美好未来 | Zhejiang New Leading Navigation Intelligent Technology Co., Ltd.</p>
+    </div>
+  </div>
+
+  <div class="audio-unlock-tip" id="audio-tip">
+    <span>🔊 点击启用语音播报功能</span>
+    <button onclick="unlockAudio()">启用</button>
+  </div>
+
+  <script>
+    // =========================
+    // 配置常量
+    // =========================
+    const API_URL = "/api/chat-multimodal";
+    const CHAT_API_URL = "/api/chat";
+    const IAT_AUTH_URL = "/api/iat-auth";
+    const WS_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/api/iat`;
+
+    // 【修改2】自动发送倒计时时间（毫秒）
+    const AUTO_SEND_DELAY = 2000;
+
+    // =========================
+    // 全局状态变量
+    // =========================
+    let sessionId = localStorage.getItem("chat_session_id") || `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    localStorage.setItem("chat_session_id", sessionId);
+
+    // VMS 虚拟人状态
+    let vmsInstance = null;
+    let vmsStarted = false;
+    let vmsUserGestureInitialized = false;
+    let vmsConfig = null;
+
+    // 音频状态
+    let audioContextUnlocked = false;
+    let currentSpeakButton = null;
+
+    // DOM 元素
+    let msgArea, msgInput, sendBtn, voiceBtn, attachBtn, fileInput, attachmentList;
+
+    // 文件和发送状态
+    let pendingFiles = [];
+    let isSending = false;
+    let currentRequestId = null;
+    let currentController = null;
+
+    // 语音输入状态
+    let isListening = false;
+    let isEndingVoice = false;
+    let iatWebSocket = null;
+    let iatEnabled = false;
+
+    // 音频处理节点
+    let micStream = null;
+    let recordAudioContext = null;
+    let sourceNode = null;
+    let processorNode = null;
+    let zeroGainNode = null;
+
+    // 语音识别文本
+    let recognitionBaseText = "";
+    let recognitionText = "";
+    let manualStopRequested = false;
+
+    // 【修改3】新增：自动发送定时器
+    let autoSendTimer = null;
+    // 【修改4】新增：标记是否刚刚完成语音输入（用于区分手动输入）
+    let justFinishedVoiceInput = false;
+
+    // =========================
+    // 初始化
+    // =========================
+    document.addEventListener("DOMContentLoaded", async function() {
+      msgArea = document.getElementById("msg-area");
+      msgInput = document.getElementById("msg-input");
+      sendBtn = document.getElementById("send-btn");
+      voiceBtn = document.getElementById("voice-btn");
+      attachBtn = document.getElementById("attach-btn");
+      fileInput = document.getElementById("file-input");
+      attachmentList = document.getElementById("attachment-list");
+
+      await loadCompanyConfig();
+      bindEvents();
+      addMsg("您好！我是新领航小E，请问有什么可以帮您？", false);
+
+      console.log("会话ID:", sessionId);
+    });
+
+    // =========================
+    // 配置加载
+    // =========================
+    async function loadCompanyConfig() {
+      try {
+        const response = await fetch("/api/company-config");
+        if (!response.ok) return;
+        const config = await response.json();
+
+        const avatarEl = document.getElementById("company-avatar");
+        const nameEl = document.getElementById("company-name");
+        const remarkEl = document.getElementById("company-remark");
+
+        if (avatarEl) avatarEl.src = config.avatar || "/static/logo3.png";
+        if (nameEl) nameEl.textContent = config.name || "新领航小E";
+        if (remarkEl) remarkEl.textContent = config.remark || "低空经济 · 智能巡检 · 专业助手";
+
+        if (config.services) {
+          iatEnabled = !!config.services.voice_enabled;
+          if (!iatEnabled) console.warn("讯飞 IAT 未启用");
+        }
+
+        if (config.vms_config) {
+          vmsConfig = config.vms_config;
+          window.VMS_CONFIG = config.vms_config;
+          console.log("✅ VMS配置已从后端加载:", {
+            appId: config.vms_config.appId ? "已设置" : "未设置",
+            avatarId: config.vms_config.avatarId
+          });
+        }
+
+      } catch (e) {
+        console.error("加载企业配置失败:", e);
+      }
+    }
+
+    // =========================
+    // 事件绑定
+    // =========================
+    function bindEvents() {
+      attachBtn.onclick = () => {
+        if (!isSending) {
+          // 【修改5】用户点击附件按钮，取消自动发送
+          cancelAutoSendCountdown("用户点击附件按钮");
+          fileInput.click();
+        }
+      };
+
+      fileInput.onchange = handleFileSelect;
+      msgInput.addEventListener("input", () => {
+        autoGrowTextarea(msgInput);
+        // 【修改6】用户手动输入文字，取消自动发送
+        if (msgInput.value.trim() && justFinishedVoiceInput) {
+          cancelAutoSendCountdown("用户手动输入");
+        }
+      });
+
+      // 【修改7】监听输入框的点击和键盘事件，取消自动发送
+      msgInput.addEventListener("click", () => {
+        cancelAutoSendCountdown("用户点击输入框");
+      });
+
+      msgInput.onkeydown = (e) => {
+        // 【修改8】用户按下键盘，取消自动发送
+        cancelAutoSendCountdown("用户按键");
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleSend();
+        }
+      };
+
+      sendBtn.onclick = () => {
+        // 【修改9】用户点击发送按钮，取消自动发送
+        cancelAutoSendCountdown("用户点击发送");
+        handleSend();
+      };
+
+      voiceBtn.onclick = () => {
+        // 【修改10】用户点击语音按钮，如果是倒计时状态则取消
+        if (autoSendTimer) {
+          cancelAutoSendCountdown("用户点击语音按钮");
+          // 清空输入，相当于取消发送
+          clearComposer();
+          return;
+        }
+        toggleVoiceInput();
+      };
+
+      document.addEventListener("pointerdown", initOnFirstGesture, { once: true });
+      document.addEventListener("keydown", initOnFirstGesture, { once: true });
+    }
+
+    // =========================
+    // 首次交互初始化
+    // =========================
+    async function initOnFirstGesture() {
+      if (vmsUserGestureInitialized) return;
+      vmsUserGestureInitialized = true;
+
+      await checkAndUnlockAudio();
+      await ensureVmsStarted();
+
+      try {
+        const resp = await fetch(IAT_AUTH_URL);
+        if (resp.ok) {
+          const data = await resp.json();
+          iatEnabled = !!data.enabled;
+          console.log("语音服务状态:", data);
+        }
+      } catch (e) {
+        console.warn("语音服务检测失败:", e);
+      }
+    }
+
+    // =========================
+    // 音频解锁
+    // =========================
+    async function checkAndUnlockAudio() {
+      if (audioContextUnlocked) return true;
+      try {
+        const testCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (testCtx.state === "suspended") await testCtx.resume();
+        await testCtx.close();
+        audioContextUnlocked = true;
+        document.getElementById("audio-tip").classList.remove("show");
+        return true;
+      } catch (e) {
+        document.getElementById("audio-tip").classList.add("show");
+        return false;
+      }
+    }
+
+    async function unlockAudio() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === "suspended") await ctx.resume();
+
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = 0.001;
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.1);
+
+        await ctx.close();
+        audioContextUnlocked = true;
+        document.getElementById("audio-tip").classList.remove("show");
+        addMsg("✅ 语音播报已启用", false);
+      } catch (e) {
+        addMsg("❌ 无法启用语音播报", false);
+      }
+    }
+
+    // =========================
+    // VMS 虚拟人管理
+    // =========================
+    async function ensureVmsStarted() {
+      if (vmsStarted && vmsInstance) return true;
+
+      const VMSClass = window.VMSClass;
+      if (!VMSClass) {
+        console.warn("VMS SDK 未加载");
+        return false;
+      }
+
+      if (!vmsConfig) {
+        vmsConfig = window.VMS_CONFIG;
+      }
+
+      if (!vmsConfig || !vmsConfig.appId) {
+        console.warn("VMS 配置未就绪，等待配置...");
+        try {
+          const response = await fetch("/api/company-config");
+          if (response.ok) {
+            const config = await response.json();
+            if (config.vms_config) {
+              vmsConfig = config.vms_config;
+              window.VMS_CONFIG = config.vms_config;
+              console.log("已从后端重新加载VMS配置");
+            }
+          }
+        } catch (e) {
+          console.warn("重新加载配置失败:", e);
+        }
+
+        if (!vmsConfig || !vmsConfig.appId) {
+          console.error("VMS 配置仍不可用");
+          return false;
+        }
+      }
+
+      try {
+        console.log("正在启动VMS，配置信息:", {
+          appId: vmsConfig.appId ? "已设置" : "未设置",
+          apiKey: vmsConfig.apiKey ? "已设置" : "未设置",
+          apiSecret: vmsConfig.apiSecret ? "已设置" : "未设置",
+          avatarId: vmsConfig.avatarId || vmsConfig.avatar_id || "默认"
+        });
+
+        vmsInstance = new VMSClass();
+
+        await vmsInstance.setApiInfo({
+          appId: vmsConfig.appId,
+          apiKey: vmsConfig.apiKey,
+          apiSecret: vmsConfig.apiSecret
+        });
+
+        const globalParams = {
+          avatar_dispatch: {
+            interactive_mode: Number(vmsConfig.avatar_dispatch?.interactive_mode ?? vmsConfig.interactiveMode ?? 0)
+          },
+          stream: {
+            protocol: vmsConfig.stream?.protocol || vmsConfig.protocol || "xrtc",
+            alpha: Number(vmsConfig.stream?.alpha ?? vmsConfig.alpha ?? 1)
+          },
+          avatar: {
+            avatar_id: vmsConfig.avatarId || vmsConfig.avatar_id || "111188001"
+          },
+          tts: {
+            vcn: vmsConfig.vcn || "x4_yezi",
+            speed: Number(vmsConfig.speed ?? 50),
+            pitch: Number(vmsConfig.pitch ?? 50),
+            volume: Number(vmsConfig.volume ?? 55)
+          }
+        };
+
+        console.log("VMS 全局参数:", globalParams);
+        await vmsInstance.setGlobalParams(globalParams);
+
+        const wrapper = document.getElementById("vms-stream");
+        wrapper.innerHTML = "";
+
+        await vmsInstance.start({ wrapper });
+
+        setTimeout(() => {
+          const media = wrapper.querySelector("video, audio");
+          if (media) {
+            media.muted = false;
+            media.volume = 1;
+            media.play?.().catch(err => {
+              console.warn("媒体自动播放被拦截:", err);
+            });
+          }
+        }, 500);
+
+        vmsStarted = true;
+        document.getElementById("avatar-loading-tip").style.display = "none";
+        console.log("✅ VMS 启动成功");
+        return true;
+
+      } catch (e) {
+        console.error("VMS 启动失败:", e);
+        addMsg("⚠️ 虚拟人加载失败: " + (e.message || "配置错误"), false);
+        return false;
+      }
+    }
+
+    // =========================
+    // 消息管理
+    // =========================
+    function escapeHtml(text) {
+      return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function addMsg(text, isUser, withSpeech = false) {
+      const row = document.createElement("div");
+      row.style.margin = "12px 0";
+      row.style.textAlign = isUser ? "right" : "left";
+
+      if (isUser || !withSpeech) {
+        row.innerHTML = `
+          <span style="
+            display:inline-block;
+            padding:12px 18px;
+            border-radius:18px;
+            background:${isUser ? "linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)" : "#e3f2fd"};
+            color:${isUser ? "#fff" : "#1565c0"};
+            max-width:85%;
+            white-space:pre-wrap;
+            word-wrap:break-word;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+          ">${escapeHtml(text)}</span>
+        `;
+      } else {
+        const wrap = document.createElement("div");
+        wrap.className = "msg-bubble-wrap";
+        wrap.innerHTML = `
+          <div style="
+            padding:12px 18px;
+            border-radius:18px;
+            background:#e3f2fd;
+            color:#1565c0;
+            max-width:100%;
+            white-space:pre-wrap;
+            word-wrap:break-word;
+            box-shadow:0 2px 8px rgba(0,0,0,0.05);
+          ">${escapeHtml(text)}</div>
+          <div class="assistant-actions">
+            <button class="speak-btn" data-playing="0">🔊 播报</button>
+          </div>
+        `;
+        row.appendChild(wrap);
+        const speakBtn = wrap.querySelector(".speak-btn");
+        speakBtn.addEventListener("click", () => playReply(text, speakBtn));
+      }
+
+      msgArea.appendChild(row);
+      msgArea.scrollTop = msgArea.scrollHeight;
+    }
+
+    function addLoading(text = "正在思考...") {
+      const loadingDiv = document.createElement("div");
+      loadingDiv.id = "loading-msg";
+      loadingDiv.style.margin = "12px 0";
+      loadingDiv.style.textAlign = "left";
+      loadingDiv.innerHTML = `<span style="color:#64b5f6;font-size:14px;display:flex;align-items:center;gap:8px;">⏳ ${escapeHtml(text)}</span>`;
+      msgArea.appendChild(loadingDiv);
+      msgArea.scrollTop = msgArea.scrollHeight;
+      return loadingDiv;
+    }
+
+    function removeLoading() {
+      const loading = document.getElementById("loading-msg");
+      if (loading) loading.remove();
+    }
+
+    function autoGrowTextarea(el) {
+      el.style.height = "auto";
+      el.style.height = Math.min(el.scrollHeight, 130) + "px";
+    }
+
+    // =========================
+    // 语音播报 (VMS TTS)
+    // =========================
+    async function stopSpeechPlayback() {
+      try {
+        if (vmsInstance && typeof vmsInstance.interrupt === "function") {
+          await vmsInstance.interrupt();
+        }
+      } catch (e) {}
+
+      try {
+        if ("speechSynthesis" in window && window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+        }
+      } catch (e) {}
+
+      if (currentSpeakButton) {
+        resetSpeakButton(currentSpeakButton);
+      }
+    }
+
+    async function playReply(replyText, buttonEl) {
+      if (buttonEl.dataset.processing === "1") {
+        return;
+      }
+
+      const canPlay = await checkAndUnlockAudio();
+      if (!canPlay) {
+        addMsg("⚠️ 请点击右下角的【启用】按钮开启语音播报功能", false);
+        return;
+      }
+
+      if (buttonEl.dataset.playing === "1") {
+        buttonEl.dataset.processing = "1";
+        await stopSpeechPlayback();
+        buttonEl.dataset.processing = "0";
+        return;
+      }
+
+      await stopSpeechPlayback();
+
+      if (!vmsStarted) {
+        const ok = await ensureVmsStarted();
+        if (!ok) {
+          playWithSystemTTS(replyText, buttonEl);
+          return;
+        }
+      }
+
+      buttonEl.dataset.processing = "1";
+      currentSpeakButton = buttonEl;
+      buttonEl.textContent = "■ 中止";
+      buttonEl.classList.add("playing");
+      buttonEl.dataset.playing = "1";
+      buttonEl.dataset.processing = "0";
+
+      try {
+        if (vmsInstance && typeof vmsInstance.writeText === "function") {
+          await vmsInstance.writeText(replyText);
+
+          const duration = Math.max(3000, Math.min(replyText.length * 220, 30000));
+          setTimeout(() => {
+            if (currentSpeakButton === buttonEl && buttonEl.dataset.playing === "1") {
+              resetSpeakButton(buttonEl);
+            }
+          }, duration);
+          return;
+        }
+        throw new Error("VMS 不支持 writeText");
+      } catch (e) {
+        console.warn("VMS 播报失败，回退系统语音:", e);
+        await stopSpeechPlayback();
+        playWithSystemTTS(replyText, buttonEl);
+      }
+    }
+
+    function resetSpeakButton(buttonEl) {
+      if (!buttonEl) return;
+      buttonEl.textContent = "🔊 播报";
+      buttonEl.classList.remove("playing");
+      buttonEl.dataset.playing = "0";
+      buttonEl.dataset.processing = "0";
+      if (currentSpeakButton === buttonEl) {
+        currentSpeakButton = null;
+      }
+    }
+
+    function playWithSystemTTS(text, buttonEl) {
+      if (!("speechSynthesis" in window)) {
+        addMsg("⚠️ 您的浏览器不支持语音播报", false);
+        return;
+      }
+
+      if (buttonEl.dataset.processing === "1") {
+        return;
+      }
+
+      currentSpeakButton = buttonEl;
+      buttonEl.dataset.processing = "1";
+      buttonEl.textContent = "■ 中止";
+      buttonEl.classList.add("playing");
+      buttonEl.dataset.playing = "1";
+      buttonEl.dataset.processing = "0";
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "zh-CN";
+      utterance.rate = 1.0;
+      utterance.volume = 1;
+
+      utterance.onend = () => {
+        resetSpeakButton(buttonEl);
+      };
+
+      utterance.onerror = (event) => {
+        console.warn("语音合成错误:", event);
+        resetSpeakButton(buttonEl);
+      };
+
+      utterance.onpause = () => {
+        setTimeout(() => {
+          if (!window.speechSynthesis.speaking && buttonEl.dataset.playing === "1") {
+            resetSpeakButton(buttonEl);
+          }
+        }, 1000);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // =========================
+    // 文件管理
+    // =========================
+    function getFileIcon(file) {
+      if (file.type.startsWith("image/")) return "🖼️";
+      if (file.name.toLowerCase().endsWith(".pdf")) return "📄";
+      if (file.name.toLowerCase().endsWith(".doc") || file.name.toLowerCase().endsWith(".docx")) return "📝";
+      return "📎";
+    }
+
+    function handleFileSelect() {
+      const files = Array.from(fileInput.files || []);
+      for (const f of files) {
+        const lower = f.name.toLowerCase();
+        if (
+          f.type.startsWith("image/") ||
+          lower.endsWith(".pdf") ||
+          lower.endsWith(".doc") ||
+          lower.endsWith(".docx") ||
+          lower.endsWith(".txt") ||
+          lower.endsWith(".md")
+        ) {
+          pendingFiles.push(f);
+        } else {
+          addMsg(`⚠️ 不支持的文件格式: ${f.name}`, false);
+        }
+      }
+      renderAttachments();
+      fileInput.value = "";
+    }
+
+    function renderAttachments() {
+      attachmentList.innerHTML = "";
+      pendingFiles.forEach((file, index) => {
+        const chip = document.createElement("div");
+        chip.className = "attachment-chip";
+        chip.innerHTML = `
+          ${getFileIcon(file)} <span>${escapeHtml(file.name)}</span>
+          <button class="attachment-remove" data-index="${index}">×</button>
+        `;
+        attachmentList.appendChild(chip);
+      });
+
+      attachmentList.querySelectorAll(".attachment-remove").forEach(btn => {
+        btn.onclick = () => {
+          const idx = Number(btn.dataset.index);
+          pendingFiles.splice(idx, 1);
+          renderAttachments();
+          // 【修改11】用户删除附件，取消自动发送
+          cancelAutoSendCountdown("用户删除附件");
+        };
+      });
+    }
+
+    // =========================
+    // 音频处理工具函数 (语音输入核心)
+    // =========================
+    function floatTo16BitPCM(float32Array) {
+      const buffer = new ArrayBuffer(float32Array.length * 2);
+      const view = new DataView(buffer);
+      let offset = 0;
+      for (let i = 0; i < float32Array.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, float32Array[i]));
+        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      }
+      return new Int16Array(buffer);
+    }
+
+    function downsampleBuffer(buffer, inputSampleRate, outputSampleRate) {
+      if (outputSampleRate === inputSampleRate) return buffer;
+      if (outputSampleRate > inputSampleRate) throw new Error("输出采样率不能高于输入采样率");
+
+      const sampleRateRatio = inputSampleRate / outputSampleRate;
+      const newLength = Math.round(buffer.length / sampleRateRatio);
+      const result = new Float32Array(newLength);
+      let offsetResult = 0;
+      let offsetBuffer = 0;
+
+      while (offsetResult < result.length) {
+        const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+        let accum = 0;
+        let count = 0;
+        for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+          accum += buffer[i];
+          count++;
+        }
+        result[offsetResult] = count > 0 ? (accum / count) : 0;
+        offsetResult++;
+        offsetBuffer = nextOffsetBuffer;
+      }
+      return result;
+    }
+
+    function int16ToBase64(int16Array) {
+      let binary = "";
+      const bytes = new Uint8Array(int16Array.buffer);
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, i + chunkSize);
+        binary += String.fromCharCode.apply(null, chunk);
+      }
+      return btoa(binary);
+    }
+
+    // =========================
+    // 【修改12】新增：自动发送倒计时功能
+    // =========================
+
+    /**
+     * 启动自动发送倒计时
+     * 在语音输入完成后，如果用户2秒内没有操作，自动发送消息
+     */
+    function startAutoSendCountdown() {
+      // 先取消之前的定时器
+      cancelAutoSendCountdown("启动新的倒计时");
+
+      // 检查是否有内容可以发送（文字或附件）
+      const hasContent = msgInput.value.trim() || pendingFiles.length > 0;
+      if (!hasContent) {
+        console.log("🎤 没有内容，跳过自动发送");
+        return;
+      }
+
+      console.log(`🎤 启动自动发送倒计时 ${AUTO_SEND_DELAY}ms`);
+
+      // 标记刚刚完成语音输入
+      justFinishedVoiceInput = true;
+
+      // 更新语音按钮样式为倒计时状态
+      voiceBtn.classList.add("auto-send-countdown");
+      voiceBtn.innerHTML = "⏳";
+      voiceBtn.title = "2秒后自动发送，点击取消";
+
+      // 启动定时器
+      autoSendTimer = setTimeout(async () => {
+        console.log("🎤 自动发送触发");
+
+        // 重置状态
+        autoSendTimer = null;
+        justFinishedVoiceInput = false;
+
+        // 恢复语音按钮样式
+        voiceBtn.classList.remove("auto-send-countdown");
+        voiceBtn.innerHTML = "🎤";
+        voiceBtn.title = "点击开始语音输入";
+
+        // 执行发送
+        await performAutoSend();
+
+      }, AUTO_SEND_DELAY);
+    }
+
+    /**
+     * 取消自动发送倒计时
+     * @param {string} reason 取消原因（用于调试）
+     */
+    function cancelAutoSendCountdown(reason = "未知") {
+      if (autoSendTimer) {
+        console.log(`🎤 取消自动发送: ${reason}`);
+        clearTimeout(autoSendTimer);
+        autoSendTimer = null;
+      }
+
+      // 重置标记
+      justFinishedVoiceInput = false;
+
+      // 恢复语音按钮样式
+      voiceBtn.classList.remove("auto-send-countdown");
+      if (!isListening && !isEndingVoice) {
+        voiceBtn.innerHTML = "🎤";
+        voiceBtn.title = "点击开始语音输入";
+      }
+    }
+
+    /**
+     * 执行自动发送
+     * 复制自 handleSend 的核心逻辑，但会清空输入栏
+     */
+    async function performAutoSend() {
+      if (isSending) {
+        console.log("🎤 正在发送中，跳过自动发送");
+        return;
+      }
+
+      const text = msgInput.value.trim();
+      const filesSnapshot = [...pendingFiles];
+
+      if (!text && filesSnapshot.length === 0) {
+        console.log("🎤 没有内容，取消自动发送");
+        return;
+      }
+
+      console.log("🎤 执行自动发送:", { text: text.slice(0, 50), files: filesSnapshot.length });
+
+      // 停止任何正在播放的语音
+      await stopSpeechPlayback();
+
+      // 显示用户消息
+      let previewText = text || "（发送附件）";
+      if (filesSnapshot.length > 0) {
+        previewText += "\n📎 " + filesSnapshot.map(f => f.name).join(", ");
+      }
+
+      addMsg(previewText, true);
+
+      // 【关键】清空输入栏和附件（语音按钮已在上一步恢复为🎤）
+      clearComposer();
+
+      // 发送请求
+      currentRequestId = "req_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
+      currentController = new AbortController();
+      addLoading();
+      setSendingState(true);
+
+      try {
+        let response;
+
+        if (filesSnapshot.length > 0) {
+          const formData = new FormData();
+          formData.append("request_id", currentRequestId);
+          formData.append("message", text);
+          formData.append("session_id", sessionId);
+          filesSnapshot.forEach(file => formData.append("files", file));
+
+          response = await fetch(API_URL, {
+            method: "POST",
+            body: formData,
+            signal: currentController.signal
+          });
+        } else {
+          response = await fetch(CHAT_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: text,
+              session_id: sessionId,
+              search_strategy: "agent"
+            }),
+            signal: currentController.signal
+          });
+        }
+
+        removeLoading();
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(errText || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("收到回复:", data);
+
+        if (data.session_id) {
+          sessionId = data.session_id;
+          localStorage.setItem("chat_session_id", sessionId);
+        }
+
+        if (data.reply) {
+          addMsg(data.reply, false, true);
+        } else {
+          addMsg("⚠️ 未收到有效回复", false);
+        }
+
+      } catch (err) {
+        removeLoading();
+        if (err.name === "AbortError") {
+          addMsg("⏹️ 已中止", false);
+        } else {
+          console.error("发送失败:", err);
+          addMsg(`❌ 发送失败: ${err.message}`, false);
+        }
+      } finally {
+        currentRequestId = null;
+        currentController = null;
+        setSendingState(false);
+      }
+    }
+
+    // =========================
+    // 语音输入控制 (核心功能) 【修改13】关键修改区域
+    // =========================
+    async function toggleVoiceInput() {
+      if (isEndingVoice) return;
+
+      if (isListening) {
+        await finishVoiceInput();
+      } else {
+        await startVoiceInput();
+      }
+    }
+
+    async function startVoiceInput() {
+      if (isSending) {
+        addMsg("⚠️ 请等待当前回复完成", false);
+        return;
+      }
+
+      if (!iatEnabled) {
+        addMsg("⚠️ 语音服务未配置，请使用文字输入", false);
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        addMsg("❌ 当前浏览器不支持麦克风录音", false);
+        return;
+      }
+
+      try {
+        // 【修改14】开始新的语音输入前，取消之前的自动发送倒计时
+        cancelAutoSendCountdown("开始新的语音输入");
+
+        // 停止任何正在播放的语音
+        await stopSpeechPlayback();
+
+        // 初始化识别状态 - 保留输入框已有内容作为基础文本
+        recognitionBaseText = msgInput.value.trim();
+        recognitionText = recognitionBaseText;
+        manualStopRequested = false;
+        isEndingVoice = false;
+
+        // 获取麦克风权限
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1
+          }
+        });
+
+        // 建立WebSocket连接 - 连接到后端 /api/iat
+        iatWebSocket = new WebSocket(WS_URL);
+
+        iatWebSocket.onopen = async () => {
+          console.log("🎤 语音识别连接已打开");
+          isListening = true;
+          voiceBtn.classList.add("listening");
+          voiceBtn.classList.remove("ending");
+          voiceBtn.classList.remove("auto-send-countdown");
+          voiceBtn.innerHTML = "🔴";
+          voiceBtn.title = "点击结束语音输入";
+          await startPCMStreaming(micStream);
+        };
+
+        iatWebSocket.onmessage = async (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            console.log("收到语音消息:", data);
+
+            if (data.code !== 0) {
+              console.error("语音识别错误:", data);
+              addMsg(`⚠️ 语音识别异常: ${data.message || "未知错误"}`, false);
+              await forceCleanupVoice();
+              return;
+            }
+
+            // 实时显示识别结果 - 关键功能：实时更新输入框
+            if (typeof data.text === "string") {
+              const receivedText = data.text.trim();
+              console.log("识别文本:", receivedText, "status:", data.status);
+
+              // 讯飞返回的是累积文本，直接显示到输入框
+              msgInput.value = receivedText;
+              autoGrowTextarea(msgInput);
+
+              // 保存当前文本
+              recognitionText = receivedText;
+            }
+
+            // 【修改15】关键修改：status=2 表示识别结束，启动自动发送倒计时
+            if (data.status === 2) {
+              console.log("✅ 语音识别完成，启动自动发送倒计时");
+
+              // 停止录音节点
+              await stopRecordingNodesOnly();
+
+              isListening = false;
+              isEndingVoice = false;
+
+              // 关闭 WebSocket
+              if (iatWebSocket) {
+                iatWebSocket.close();
+                iatWebSocket = null;
+              }
+
+              // 【关键】启动自动发送倒计时（2秒后自动发送）
+              startAutoSendCountdown();
+            }
+          } catch (e) {
+            console.error("解析语音消息失败:", e);
+          }
+        };
+
+        iatWebSocket.onerror = async (e) => {
+          console.error("语音 WebSocket 错误:", e);
+          addMsg("⚠️ 语音识别连接失败", false);
+          await forceCleanupVoice();
+        };
+
+        iatWebSocket.onclose = async () => {
+          console.log("语音 WebSocket 已关闭");
+          if (isListening || isEndingVoice) {
+            await forceCleanupVoice(false);
+          }
+        };
+
+      } catch (err) {
+        console.error("启动语音输入失败:", err);
+        if (err.name === "NotAllowedError") {
+          addMsg("❌ 请在浏览器中允许麦克风权限", false);
+        } else {
+          addMsg(`❌ 启动语音输入失败: ${err.message}`, false);
+        }
+        await forceCleanupVoice();
+      }
+    }
+
+    async function startPCMStreaming(stream) {
+      recordAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+      sourceNode = recordAudioContext.createMediaStreamSource(stream);
+      processorNode = recordAudioContext.createScriptProcessor(4096, 1, 1);
+      zeroGainNode = recordAudioContext.createGain();
+      zeroGainNode.gain.value = 0;
+
+      processorNode.onaudioprocess = (event) => {
+        if (!isListening || isEndingVoice || !iatWebSocket || iatWebSocket.readyState !== WebSocket.OPEN) return;
+
+        const inputData = event.inputBuffer.getChannelData(0);
+        const downsampled = downsampleBuffer(inputData, recordAudioContext.sampleRate, 16000);
+        const pcm16 = floatTo16BitPCM(downsampled);
+        const base64Audio = int16ToBase64(pcm16);
+
+        iatWebSocket.send(JSON.stringify({
+          audio: base64Audio
+        }));
+      };
+
+      sourceNode.connect(processorNode);
+      processorNode.connect(zeroGainNode);
+      zeroGainNode.connect(recordAudioContext.destination);
+    }
+
+    async function finishVoiceInput() {
+      if (!isListening || !iatWebSocket || iatWebSocket.readyState !== WebSocket.OPEN) {
+        await forceCleanupVoice();
+        return;
+      }
+
+      try {
+        manualStopRequested = true;
+        isEndingVoice = true;
+        voiceBtn.classList.remove("listening");
+        voiceBtn.classList.add("ending");
+        voiceBtn.classList.remove("auto-send-countdown");
+        voiceBtn.innerHTML = "⏳";
+        voiceBtn.title = "正在结束识别，请稍候";
+
+        await stopRecordingNodesOnly();
+
+        // 发送结束帧通知后端
+        iatWebSocket.send(JSON.stringify({ action: "end" }));
+      } catch (e) {
+        console.error("结束语音输入失败:", e);
+        await forceCleanupVoice();
+      }
+    }
+
+    async function stopRecordingNodesOnly() {
+      try {
+        if (processorNode) {
+          processorNode.disconnect();
+          processorNode.onaudioprocess = null;
+          processorNode = null;
+        }
+      } catch (e) {}
+
+      try {
+        if (sourceNode) {
+          sourceNode.disconnect();
+          sourceNode = null;
+        }
+      } catch (e) {}
+
+      try {
+        if (zeroGainNode) {
+          zeroGainNode.disconnect();
+          zeroGainNode = null;
+        }
+      } catch (e) {}
+
+      try {
+        if (recordAudioContext) {
+          await recordAudioContext.close();
+          recordAudioContext = null;
+        }
+      } catch (e) {}
+
+      try {
+        if (micStream) {
+          micStream.getTracks().forEach(track => track.stop());
+          micStream = null;
+        }
+      } catch (e) {}
+    }
+
+    async function forceCleanupVoice(closeSocket = true) {
+      isListening = false;
+      isEndingVoice = false;
+      manualStopRequested = false;
+
+      await stopRecordingNodesOnly();
+
+      try {
+        if (iatWebSocket && closeSocket) {
+          iatWebSocket.onopen = null;
+          iatWebSocket.onmessage = null;
+          iatWebSocket.onerror = null;
+          iatWebSocket.onclose = null;
+          if (iatWebSocket.readyState === WebSocket.OPEN || iatWebSocket.readyState === WebSocket.CONNECTING) {
+            iatWebSocket.close();
+          }
+        }
+      } catch (e) {}
+
+      iatWebSocket = null;
+
+      // 【修改16】强制清理时取消自动发送
+      cancelAutoSendCountdown("强制清理语音");
+
+      voiceBtn.classList.remove("listening");
+      voiceBtn.classList.remove("ending");
+      voiceBtn.classList.remove("auto-send-countdown");
+      voiceBtn.innerHTML = "🎤";
+      voiceBtn.title = "点击开始语音输入";
+
+      console.log("🎤 已停止语音输入");
+    }
+
+    // =========================
+    // 发送消息 【修改17】优化 clearComposer 确保语音按钮重置
+    // =========================
+    async function handleSend() {
+      if (isSending) {
+        await abortCurrentRequest();
+        return;
+      }
+
+      const text = msgInput.value.trim();
+      const filesSnapshot = [...pendingFiles];
+
+      if (!text && filesSnapshot.length === 0) return;
+
+      await stopSpeechPlayback();
+      if (isListening || isEndingVoice) {
+        await forceCleanupVoice();
+      }
+
+      let previewText = text || "（发送附件）";
+      if (filesSnapshot.length > 0) {
+        previewText += "\n📎 " + filesSnapshot.map(f => f.name).join(", ");
+      }
+
+      addMsg(previewText, true);
+      clearComposer();
+
+      currentRequestId = "req_" + Date.now() + "_" + Math.random().toString(36).slice(2, 10);
+      currentController = new AbortController();
+      addLoading();
+      setSendingState(true);
+
+      try {
+        let response;
+
+        if (filesSnapshot.length > 0) {
+          const formData = new FormData();
+          formData.append("request_id", currentRequestId);
+          formData.append("message", text);
+          formData.append("session_id", sessionId);
+          filesSnapshot.forEach(file => formData.append("files", file));
+
+          response = await fetch(API_URL, {
+            method: "POST",
+            body: formData,
+            signal: currentController.signal
+          });
+        } else {
+          response = await fetch(CHAT_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message: text,
+              session_id: sessionId,
+              search_strategy: "agent"
+            }),
+            signal: currentController.signal
+          });
+        }
+
+        removeLoading();
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(errText || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("收到回复:", data);
+
+        if (data.session_id) {
+          sessionId = data.session_id;
+          localStorage.setItem("chat_session_id", sessionId);
+        }
+
+        if (data.reply) {
+          addMsg(data.reply, false, true);
+        } else {
+          addMsg("⚠️ 未收到有效回复", false);
+        }
+
+      } catch (err) {
+        removeLoading();
+        if (err.name === "AbortError") {
+          addMsg("⏹️ 已中止", false);
+        } else {
+          console.error("发送失败:", err);
+          addMsg(`❌ 发送失败: ${err.message}`, false);
+        }
+      } finally {
+        currentRequestId = null;
+        currentController = null;
+        setSendingState(false);
+      }
+    }
+
+    function clearComposer() {
+      msgInput.value = "";
+      msgInput.style.height = "48px";
+      pendingFiles = [];
+      attachmentList.innerHTML = "";
+      fileInput.value = "";
+      recognitionBaseText = "";
+      recognitionText = "";
+
+      // 【修改18】确保语音按钮恢复为麦克风状态
+      if (!isListening && !isEndingVoice && !autoSendTimer) {
+        voiceBtn.classList.remove("listening");
+        voiceBtn.classList.remove("ending");
+        voiceBtn.classList.remove("auto-send-countdown");
+        voiceBtn.innerHTML = "🎤";
+        voiceBtn.title = "点击开始语音输入";
+      }
+    }
+
+    function setSendingState(sending) {
+      isSending = sending;
+      if (sending) {
+        sendBtn.textContent = "中止";
+        sendBtn.classList.add("stop-mode");
+        attachBtn.disabled = true;
+        voiceBtn.disabled = true;
+      } else {
+        sendBtn.textContent = "发送";
+        sendBtn.classList.remove("stop-mode");
+        attachBtn.disabled = false;
+        voiceBtn.disabled = false;
+      }
+    }
+
+    async function abortCurrentRequest() {
+      if (!isSending || !currentRequestId) return;
+
+      try {
+        if (currentController) currentController.abort();
+        await fetch(`/api/cancel/${encodeURIComponent(currentRequestId)}`, {
+          method: "POST"
+        }).catch(() => {});
+      } finally {
+        removeLoading();
+        addMsg("⏹️ 已中止", false);
+        currentRequestId = null;
+        currentController = null;
+        setSendingState(false);
+      }
+    }
+  </script>
+</body>
+</html>

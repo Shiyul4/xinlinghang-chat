@@ -1,7 +1,7 @@
 window.VMS_CONFIG = {
-  "appId": "8e17176d",
-  "apiKey": "12044b4985a39b1330da60886cc0072a",
-  "apiSecret": "NmQ1ZDNlNmNjNzM1YzljM2RjYjBkNWU4",
+  "appId": "365f972a",
+  "apiKey": "6237bf5ab601d0af4c283a43ccf355cb",
+  "apiSecret": "YWVmMGUyOWE3Y2Y3MzkzYmIwOWVmZWU2",
   "avatarId": "111188001",
   "streamDomId": "vms-stream",
   "width": 720,
